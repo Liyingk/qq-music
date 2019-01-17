@@ -1,0 +1,100 @@
+@charset 'utf-8';
+$mainColor: #fff;
+@mixin content-center {
+  width: 1200px;
+  height: 100%;
+  margin: 0 auto;
+}
+@mixin hover-opcity {
+  opacity: 0.5;
+  &:hover {
+    opacity: 1;
+    cursor: pointer;
+  }
+}
+@mixin music-list-model {
+  div {
+    float: left;
+    line-height: 50px;
+  }
+  .list-check {
+    width: 50px;
+    height: 100%;
+    text-align: center;
+    @include hover-opcity;
+    i {
+      width: 14px;
+      height: 14px;
+      border: 1px solid $mainColor;
+      display: inline-block;
+      border-radius: 2px;
+    }
+  }
+  .list-number {
+    width: 20px;
+    height: 100%;
+  }
+  .list-name {
+    width: 50%;
+    height: 100%;
+  }
+  .list-singer {
+    width: 20%;
+    height: 100%;
+  }
+}
+@mixin list-menu-model {
+  a {
+    display: inline-block;
+    margin-right: 5px;
+    width: 36px;
+    height: 36px;
+    background: url('../img/icon_list_menu.png') no-repeat 0 0;
+    @include hover-opcity;
+  }
+}
+@mixin footer-a {
+  a {
+    display: inline-block;
+    text-decoration: none;
+    color: $mainColor;
+    background: url('../img/player.png') no-repeat 0 0;
+    margin-right: 20px;
+  }
+}
+@mixin footer-a-box {
+  width: 19px;
+  height: 20px;
+}
+@mixin circle($value) {
+  width: $value;
+  height: $value;
+  border-radius: 50%;
+  background-color: $mainColor;
+}
+@mixin progress($width, $preWidth) {
+  .bar {
+    width: $width;
+    height: 4px;
+    margin-top: 5px;
+    background: rgba($color: $mainColor, $alpha: 0.5);
+    .line {
+      width: $preWidth;
+      height: 100%;
+      background-color: $mainColor;
+      .dot {
+        @include circle(14px);
+        position: relative;
+        top: -5px;
+        left: $preWidth;
+      }
+    }
+  }
+}
+@mixin mask-all {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
