@@ -78,6 +78,7 @@ $mainColor: #fff;
     height: 4px;
     margin-top: 5px;
     background: rgba($color: $mainColor, $alpha: 0.5);
+    cursor: pointer;
     .line {
       width: $preWidth;
       height: 100%;

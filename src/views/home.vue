@@ -51,7 +51,7 @@
                       href="javascript:;"
                       class="list-menu-pause"
                       title="播放"
-                      @click="clickListMenuPlay($event,index)"
+                      @click="clickListMenuPlay(index)"
                     ></a>
                     <a href="javascript:;" class="list-menu-add" title="添加"></a>
                     <a href="javascript:;" class="list-menu-onload" title="下载"></a>
@@ -61,7 +61,12 @@
                 <div class="list-singer">{{musicLists.singer}}</div>
                 <div class="list-time">
                   <span v-show="musicLists.menuShow">{{musicLists.time}}</span>
-                  <a title="删除" href="javascript:;" v-show="!(musicLists.menuShow)"></a>
+                  <a
+                    title="删除"
+                    href="javascript:;"
+                    v-show="!(musicLists.menuShow)"
+                    @click="deleteMusicList(index)"
+                  ></a>
                 </div>
               </div>
             </vue-scroll>
@@ -74,15 +79,15 @@
             </a>
             <div class="song-info-name">
               歌曲名称：
-              <a href="javascript:;">忆江南</a>
+              <a href="javascript:;">{{name}}</a>
             </div>
             <div class="song-info-singer">
               歌手名：
-              <a href="javascript:;">李江南</a>
+              <a href="javascript:;">{{singer}}</a>
             </div>
             <div class="song-info-name">
               专辑名：
-              <a href="javascript:;">江南系列</a>
+              <a href="javascript:;">{{album}}</a>
             </div>
           </div>
           <div class="song-lyric">
@@ -94,15 +99,18 @@
     </div>
     <div class="home-footer">
       <div class="home-footer-center">
-        <a href="javascript:;" class="music-previous"></a>
+        <a href="javascript:;" class="music-previous" @click="clickPreviousOrNext(0)"></a>
         <a href="javascript:;" class="music-pause" @click="clickTotalPlay()"></a>
-        <a href="javascript:;" class="music-next"></a>
+        <a href="javascript:;" class="music-next" @click="clickPreviousOrNext(1)"></a>
         <div class="music-progress-info">
           <div class="music-progress-text">
-            <span class="music-text-name">某某某 / 某某某</span>
-            <span class="music-text-time">02:20 / 03:30</span>
+            <span class="music-text-name">{{name +' / '+ singer}}</span>
+            <span class="music-text-time">00:00 / {{time}}</span>
           </div>
-          <div class="music-progress-bar bar">
+          <div
+            class="music-progress-bar bar"
+            @click="changeProgress($event,'.music-progress-bar','.music-progress-line','.music-progress-dot')"
+          >
             <div class="music-progress-line line">
               <div class="music-progress-dot dot"></div>
             </div>
@@ -115,7 +123,10 @@
         <a href="javascript:;" class="music-only"></a>
         <div class="music-voice-info">
           <a href="javascript:;" class="music-voice-icon"></a>
-          <div class="music-voice-bar bar">
+          <div
+            class="music-voice-bar bar"
+            @click="changeProgress($event,'.music-voice-bar','.music-voice-line','.music-voice-dot')"
+          >
             <div class="music-voice-line line">
               <div class="music-voice-dot dot"></div>
             </div>
@@ -147,8 +158,13 @@ export default {
       musicList,
       musicListIndex: -1,
       musicPauseStatus: 0,
+      name: '告白气球',
+      singer: '周杰伦',
+      album: '周杰伦的床边故事',
+      time: '03:35',
       linkUrl: '/static/source/ConfessionBalloon.mp3',
-      cover: '/static/source/ConfessionBalloon.jpg'
+      cover: '/static/source/ConfessionBalloon.jpg',
+      link_lrc: '/static/source/ConfessionBalloon.txt'
     }
   },
   methods: {
@@ -158,6 +174,9 @@ export default {
     closeMenu(index) {
       this.$set(this.musicList[index], `menuShow`, true)
     },
+    toToggleClass(e, checkClassName, className) {
+      this.toggleClass(e.currentTarget, checkClassName, className)
+    },
     toggleClass(e, checkClassName, className) {
       if (e.className === checkClassName) {
         e.className = className
@@ -165,31 +184,21 @@ export default {
         e.className = checkClassName
       }
     },
-    toToggleClass(e, checkClassName, className) {
-      this.toggleClass(e.currentTarget, checkClassName, className)
-    },
-    toggleNumberClass(e) {
-      const numberIcon =
-        e.currentTarget.parentElement.parentElement.parentElement.children[1]
+    togglePlayClass(index) {
+      const numberIcon = document.querySelectorAll('.list-number')[index + 1]
       this.toggleClass(numberIcon, 'list-number', 'list-number list-numbered')
-    },
-    toggleHightLightClass(e) {
-      const textHightLight =
-        e.currentTarget.parentElement.parentElement.parentElement
+      const textHightLight = document.querySelectorAll('.music-list')[index]
       this.toggleClass(
         textHightLight,
         'music-list',
         'music-list music-list-heightlight'
       )
-    },
-    toggleMusicPauseClass() {
-      const musicPause = document.querySelector('.music-pause')
-      this.toggleClass(musicPause, 'music-pause', 'music-pause music-play')
-      if (this.musicPauseStatus === 0) {
-        this.musicPauseStatus = 1
-      } else {
-        this.musicPauseStatus = 0
-      }
+      const ListPause = document.querySelectorAll('.list-menu-pause')[index]
+      this.toggleClass(
+        ListPause,
+        'list-menu-pause',
+        'list-menu-pause list-menu-play'
+      )
     },
     exclusiveMusicList() {
       const musicListMenu = document.querySelectorAll('.list-menu-pause')
@@ -200,8 +209,11 @@ export default {
         item.parentElement.parentElement.parentElement.className = 'music-list'
       })
     },
-    checkAllMenuStatus(e) {
-      if (e.currentTarget.className === 'list-menu-pause list-menu-play') {
+    checkAllMenuStatus(index) {
+      if (
+        document.querySelectorAll('.list-menu-pause')[index].className ===
+        'list-menu-pause list-menu-play'
+      ) {
         const musicPause = document.querySelector('.music-pause')
         musicPause.className = 'music-pause music-play'
       } else {
@@ -209,51 +221,84 @@ export default {
         musicPause.className = 'music-pause'
       }
     },
-    clickListMenuPlay(e, index) {
-      this.cover = musicList[index].cover
-      this.linkUrl = musicList[index].link_url
+    playMusic() {
       const audioEle = document.querySelector('audio')
-
+      if (audioEle.paused) {
+        audioEle.play()
+      } else {
+        audioEle.pause()
+      }
+    },
+    toggleMusic(index) {
+      const audioEle = document.querySelector('audio')
+      this.name = this.musicList[index].name
+      this.singer = this.musicList[index].singer
+      this.album = this.musicList[index].album
+      this.time = this.musicList[index].time
+      this.cover = this.musicList[index].cover
+      this.linkUrl = this.musicList[index].link_url
+      this.link_lrc = this.musicList[index].link_lrc
+      audioEle.load()
+      audioEle.play()
+    },
+    clickListMenuPlay(index) {
       if (this.musicListIndex === index) {
-        this.toToggleClass(
-          e,
-          'list-menu-pause',
-          'list-menu-pause list-menu-play'
-        )
-        this.toggleNumberClass(e)
-        this.checkAllMenuStatus(e)
-        if (audioEle.paused) {
-          audioEle.play()
-        } else {
-          audioEle.pause()
-        }
+        this.playMusic()
       } else {
         this.exclusiveMusicList()
-        this.toToggleClass(
-          e,
-          'list-menu-pause',
-          'list-menu-pause list-menu-play'
-        )
-        this.toggleNumberClass(e)
-        this.toggleHightLightClass(e)
-        this.checkAllMenuStatus(e)
-        audioEle.load()
-        audioEle.play()
+        this.toggleMusic(index)
       }
+      this.togglePlayClass(index)
+      this.checkAllMenuStatus(index)
       this.musicListIndex = index
     },
     clickTotalPlay(index) {
-      if (this.musicListIndex === -1) {
-        this.musicListIndex = 0
-        this.toggleMusicPauseClass()
-        this.toggleClass()
-      } else {
-        if (this.musicPauseStatus === 0) {
-          this.toggleMusicPauseClass()
+      if (this.musicListIndex === -1) this.musicListIndex = 0
+      this.clickListMenuPlay(this.musicListIndex)
+    },
+    clickPreviousOrNext(value) {
+      let index
+      if (value === 0) {
+        console.log(musicList[musicList.length - 1])
+        if (this.musicListIndex === 0) {
+          index = musicList.length - 1
         } else {
-          this.toggleMusicPauseClass()
+          index = this.musicListIndex - 1
+        }
+      } else {
+        if (this.musicListIndex === musicList.length - 1) {
+          index = 0
+        } else {
+          index = this.musicListIndex + 1
         }
       }
+      this.exclusiveMusicList()
+      this.clickListMenuPlay(index)
+    },
+    deleteMusicList(index) {
+      this.musicList.splice(index, 1)
+      if (this.musicListIndex === index) {
+        if (index >= musicList.length) {
+          index = 0
+          this.clickListMenuPlay(index)
+        }
+        this.toggleMusic(index)
+      } else if (this.musicListIndex > index) {
+        let musicListIndexs = this.musicListIndex - 1
+        this.exclusiveMusicList()
+        this.togglePlayClass(musicListIndexs)
+        this.musicListIndex = musicListIndexs
+      }
+    },
+    changeProgress(e, pros, lines, dots) {
+      alert('点击')
+      const pro = document.querySelector(pros)
+      const line = document.querySelector(lines)
+      const dot = document.querySelector(dots)
+      let proLeft = pro.offsetLeft
+      let eLeft = e.pageX
+      line.style.width = eLeft - proLeft + 'px'
+      dot.style.left = eLeft - proLeft + 'px'
     }
   },
   components: {
