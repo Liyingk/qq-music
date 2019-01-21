@@ -1,12 +1,16 @@
-import musicList from '../data/musicList'
-class Player {
-  constructor(index, audio) {
-    this.index = index
-    this.musicList = musicList
-    this.audio = audio
+export default {
+  playMusic(audioEle) {
+    if (audioEle.paused) {
+      audioEle.play()
+    } else {
+      audioEle.pause()
+    }
+  },
+  toggleMusic(audioEle) {
+    audioEle.load()
+    audioEle.play()
+  },
+  musicSeekTo(audioEle, value) {
+    audioEle.currentTime = audioEle.duration * value
   }
-  playMusic() {}
-  pauseMusic() {}
-  toggleMusic() {}
 }
-export default new Player()

@@ -105,15 +105,17 @@
         <div class="music-progress-info">
           <div class="music-progress-text">
             <span class="music-text-name">{{name +' / '+ singer}}</span>
-            <span class="music-text-time">00:00 / {{time}}</span>
+            <span class="music-text-time">{{time}}</span>
           </div>
           <div
             class="music-progress-bar bar"
             @click="changeProgress($event,'.music-progress-bar','.music-progress-line','.music-progress-dot')"
           >
-            <div class="music-progress-line line">
-              <div class="music-progress-dot dot"></div>
-            </div>
+            <div class="music-progress-line line"></div>
+            <div
+              class="music-progress-dot dot"
+              @mousedown="mousedownDot($event,'.music-progress-bar','.music-progress-line','.music-progress-dot')"
+            ></div>
           </div>
         </div>
         <a href="javascript:;" class="music-mode"></a>
@@ -127,16 +129,15 @@
             class="music-voice-bar bar"
             @click="changeProgress($event,'.music-voice-bar','.music-voice-line','.music-voice-dot')"
           >
-            <div class="music-voice-line line">
-              <div class="music-voice-dot dot"></div>
-            </div>
+            <div class="music-voice-line line"></div>
+            <div class="music-voice-dot dot"></div>
           </div>
         </div>
       </div>
     </div>
     <div class="mask-bg" :style="{background: 'url('+ cover +') no-repeat'}"></div>
     <div class="mask"></div>
-    <audio>
+    <audio @timeupdate="changeAudioTime('.music-progress-line','.music-progress-dot')">
       <source :src="linkUrl" type="audio/mpeg">您的浏览器不支持audio元素
     </audio>
   </div>
@@ -144,6 +145,9 @@
 <script>
 import toolbarList from '../data/toolbarList.js'
 import musicList from '../data/musicList.js'
+import publicfun from '../util/public.js'
+import progress from '../util/progress.js'
+import player from '../util/player.js'
 import vuescroll from 'vuescroll'
 import 'vuescroll/dist/vuescroll.css'
 export default {
@@ -161,7 +165,7 @@ export default {
       name: '告白气球',
       singer: '周杰伦',
       album: '周杰伦的床边故事',
-      time: '03:35',
+      time: '00:00 / 00:00',
       linkUrl: '/static/source/ConfessionBalloon.mp3',
       cover: '/static/source/ConfessionBalloon.jpg',
       link_lrc: '/static/source/ConfessionBalloon.txt'
@@ -221,36 +225,26 @@ export default {
         musicPause.className = 'music-pause'
       }
     },
-    playMusic() {
-      const audioEle = document.querySelector('audio')
-      if (audioEle.paused) {
-        audioEle.play()
-      } else {
-        audioEle.pause()
-      }
-    },
     toggleMusic(index) {
-      const audioEle = document.querySelector('audio')
       this.name = this.musicList[index].name
       this.singer = this.musicList[index].singer
       this.album = this.musicList[index].album
-      this.time = this.musicList[index].time
       this.cover = this.musicList[index].cover
       this.linkUrl = this.musicList[index].link_url
       this.link_lrc = this.musicList[index].link_lrc
-      audioEle.load()
-      audioEle.play()
     },
     clickListMenuPlay(index) {
+      const audioDom = document.querySelector('audio')
       if (this.musicListIndex === index) {
-        this.playMusic()
+        player.playMusic(audioDom)
       } else {
         this.exclusiveMusicList()
         this.toggleMusic(index)
+        player.toggleMusic(audioDom)
       }
+      this.musicListIndex = index
       this.togglePlayClass(index)
       this.checkAllMenuStatus(index)
-      this.musicListIndex = index
     },
     clickTotalPlay(index) {
       if (this.musicListIndex === -1) this.musicListIndex = 0
@@ -259,7 +253,6 @@ export default {
     clickPreviousOrNext(value) {
       let index
       if (value === 0) {
-        console.log(musicList[musicList.length - 1])
         if (this.musicListIndex === 0) {
           index = musicList.length - 1
         } else {
@@ -291,14 +284,22 @@ export default {
       }
     },
     changeProgress(e, pros, lines, dots) {
-      alert('点击')
-      const pro = document.querySelector(pros)
-      const line = document.querySelector(lines)
-      const dot = document.querySelector(dots)
-      let proLeft = pro.offsetLeft
-      let eLeft = e.pageX
-      line.style.width = eLeft - proLeft + 'px'
-      dot.style.left = eLeft - proLeft + 'px'
+      progress.clickProgress(e, pros, lines, dots)
+      const value = progress.getProgress(pros, lines)
+      const audioDom = document.querySelector('audio')
+      player.musicSeekTo(audioDom, value)
+    },
+    mousedownDot(e, pros, lines, dots) {
+      progress.mouseMoveProgress(e, pros, lines, dots)
+      const value = progress.getProgress(pros, lines)
+      const audioDom = document.querySelector('audio')
+      player.musicSeekTo(audioDom, value)
+    },
+    changeAudioTime(lines, dots) {
+      const audioDom = document.querySelector('audio')
+      this.time = publicfun.formatDate(audioDom.currentTime, audioDom.duration)
+      let progressWidth = (audioDom.currentTime / audioDom.duration) * 100
+      progress.setProgress(progressWidth, lines, dots)
     }
   },
   components: {
